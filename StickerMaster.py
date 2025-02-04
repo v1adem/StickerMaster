@@ -392,6 +392,7 @@ class StickerGeneratorApp(QWidget):
     def generate_IME_box_pdfs(self):
         if not self.template_path:
             return
+        serail = self.serial_IME_box_input.text()
         short_prefix = self.short_prefix_IME_box_input.text()
         count = int(self.count_IME_box_input.text())
         year = self.year_IME_box_input.text()
@@ -410,7 +411,7 @@ class StickerGeneratorApp(QWidget):
 
         for i in range(1, count + 1):
             serial_number = None
-            self.modify_IME_box_pdf(self.template_path, doc_output, date_code, nominal, va, short_prefix)
+            self.modify_IME_box_pdf(self.template_path, doc_output, serail, date_code, nominal, va, short_prefix)
 
         # Зберегти фінальний PDF файл з усіма сторінками
         doc_output.save(output_pdf)
@@ -523,10 +524,10 @@ class StickerGeneratorApp(QWidget):
 
         doc.close()
 
-    def modify_IME_box_pdf(self, input_pdf, doc_output, date_code, nominal, va, short_prefix):
+    def modify_IME_box_pdf(self, input_pdf, doc_output, serial, date_code, nominal, va, short_prefix):
         doc = fitz.open(input_pdf)
         date_pattern = r"\d{2}W\d{2}"  # Шаблон для року і тижня
-        serial_pattern = r"\d{10}"  # Шаблон для серійного номера
+        serial_pattern = fr"{self.IME_box_serial_pattern_input.text()}$"  # Шаблон для серійного номера
         ipr_pattern = r"Ipr \d+A"  # Шаблон для пошуку "Ipr" та "A"
         article_pattern = r"^(TA|TT|TAS|TASS|TASO)\d+[C|B|D]\d+SE$"  # Шаблон для артикулу
         start_pattern = r"^(TA|TT|TAS|TASS|TASO)\d+$"  # Шаблон для початку заміни
@@ -557,6 +558,15 @@ class StickerGeneratorApp(QWidget):
                         x0, y0, a, b = bbox
                         y0 += 0.1
                         bbox = x0, y0, a, b
+
+                        # Заміна серійного номера
+                        if re.match(serial_pattern, span_text):
+                            new_page.add_redact_annot(bbox, fill=[255, 255, 255])
+                            new_page.apply_redactions()
+                            if serial is not None:
+                                new_page.insert_text((x0, y0 + font_size), serial, fontsize=font_size,
+                                                     color=(0, 0, 0),
+                                                     fontfile=font_path, fontname=font_name)
 
                         # Заміна дати
                         if re.match(date_pattern, span_text):
