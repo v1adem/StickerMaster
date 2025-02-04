@@ -2,8 +2,7 @@ import sys
 import os
 import fitz  # PyMuPDF
 import re
-from PySide6.QtWidgets import QApplication, QWidget, QVBoxLayout, QLabel, QLineEdit, QPushButton, QFileDialog, \
-    QHBoxLayout, \
+from PySide6.QtWidgets import QApplication, QWidget, QLabel, QLineEdit, QPushButton, QFileDialog, \
     QMessageBox, QGroupBox, QGridLayout, QTabWidget
 from PySide6.QtGui import QPixmap, Qt
 from PIL import ImageQt, Image
@@ -61,7 +60,6 @@ class StickerGeneratorApp(QWidget):
 
         self.setLayout(main_layout)
         self.setWindowTitle("Sticker Master IME")
-        self.resize(800, 600)  # Змінюємо розмір вікна
         self.template_path = ""
         self.temp_preview_path = ""
 
@@ -292,7 +290,8 @@ class StickerGeneratorApp(QWidget):
 
         self.temp_preview_path = os.path.join(os.getcwd(), "tmp_preview.pdf")
         doc_output = fitz.open()
-        self.modify_IME_standart_pdf(self.template_path, doc_output, f"{prefix}0001", date_code, nominal, va, short_prefix)
+        self.modify_IME_standart_pdf(self.template_path, doc_output, f"{prefix}0001", date_code, nominal, va,
+                                     short_prefix)
         doc_output.save(self.temp_preview_path)
         doc_output.close()
 
@@ -372,7 +371,8 @@ class StickerGeneratorApp(QWidget):
 
         for i in range(1, count + 1):
             serial_number = f"{prefix}{i:04}"
-            self.modify_IME_standart_pdf(self.template_path, doc_output, serial_number, date_code, nominal, va, short_prefix)
+            self.modify_IME_standart_pdf(self.template_path, doc_output, serial_number, date_code, nominal, va,
+                                         short_prefix)
 
         # Зберегти фінальний PDF файл з усіма сторінками
         doc_output.save(output_pdf)
@@ -464,8 +464,8 @@ class StickerGeneratorApp(QWidget):
                             new_page.apply_redactions()
                             if serial_number is not None:
                                 new_page.insert_text((x0, y0 + font_size), serial_number, fontsize=font_size,
-                                                 color=(0, 0, 0),
-                                                 fontfile=font_path, fontname=font_name)
+                                                     color=(0, 0, 0),
+                                                     fontfile=font_path, fontname=font_name)
 
                         # Заміна дати
                         if re.match(date_pattern, span_text):
@@ -557,7 +557,7 @@ class StickerGeneratorApp(QWidget):
                         if re.match(ipr_pattern, span_text):
                             new_page.add_redact_annot(bbox, fill=[255, 255, 255])
                             new_page.apply_redactions()
-                            #new_page.insert_text((x0, y0 + font_size), f"Ipr {nominal}A", fontsize=font_size,
+                            # new_page.insert_text((x0, y0 + font_size), f"Ipr {nominal}A", fontsize=font_size,
                             #                     color=(0, 0, 0))
 
                             # Заміна артикулу на кожній сторінці
@@ -584,7 +584,7 @@ class StickerGeneratorApp(QWidget):
                         if re.match(r"15$", span_text):
                             new_page.add_redact_annot(bbox, fill=[255, 255, 255])
                             new_page.apply_redactions()
-                            #new_page.insert_text((x0, y0 + font_size - 0.1), va,
+                            # new_page.insert_text((x0, y0 + font_size - 0.1), va,
                             #                     fontsize=font_size, color=(0, 0, 0), fontfile=font_path,
                             #                     fontname=font_name)
 
