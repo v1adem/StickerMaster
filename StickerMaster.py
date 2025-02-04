@@ -112,14 +112,17 @@ class StickerGeneratorApp(QWidget):
         self.IME_box_serial_pattern_label.setStyleSheet("font-weight: bold; color: red;")
         self.IME_box_serial_pattern_input = QLineEdit()
 
+        self.serial_IME_box_label = QLabel("Серійний номер:")
+        self.serial_IME_box_input = QLineEdit()
+
         self.short_prefix_IME_box_label = QLabel("Короткий артикул:")
         self.short_prefix_IME_box_input = QLineEdit()
 
-        self.nominal_IME_box_label = QLabel("Напруга:")
-        self.nominal_IME_box_input = QLineEdit()
+        self.voltage_IME_box_label = QLabel("Напруга:")
+        self.voltage_IME_box_input = QLineEdit()
 
-        self.va_IME_box_label = QLabel("Струм A:")
-        self.va_IME_box_input = QLineEdit()
+        self.current_IME_box_label = QLabel("Струм A:")
+        self.current_IME_box_input = QLineEdit()
 
         self.count_IME_box_label = QLabel("Кількість в коробці:")
         self.count_IME_box_input = QLineEdit()
@@ -134,9 +137,11 @@ class StickerGeneratorApp(QWidget):
         self.week_IME_box_input = QLineEdit()
 
         # Встановлюємо рамку для QLineEdit
+        self.IME_box_serial_pattern_input.setStyleSheet("QLineEdit { border: 1px solid gray; }")
+        self.serial_IME_box_input.setStyleSheet("QLineEdit { border: 1px solid gray; }")
         self.short_prefix_IME_box_input.setStyleSheet("QLineEdit { border: 1px solid gray; }")
-        self.nominal_IME_box_input.setStyleSheet("QLineEdit { border: 1px solid gray; }")
-        self.va_IME_box_input.setStyleSheet("QLineEdit { border: 1px solid gray; }")
+        self.voltage_IME_box_input.setStyleSheet("QLineEdit { border: 1px solid gray; }")
+        self.current_IME_box_input.setStyleSheet("QLineEdit { border: 1px solid gray; }")
         self.count_IME_box_input.setStyleSheet("QLineEdit { border: 1px solid gray; }")
         self.box_count_IME_box_input.setStyleSheet("QLineEdit { border: 1px solid gray; }")
         self.year_IME_box_input.setStyleSheet("QLineEdit { border: 1px solid gray; }")
@@ -216,23 +221,29 @@ class StickerGeneratorApp(QWidget):
         input_layout.addWidget(self.short_prefix_IME_box_label, 1, 0)
         input_layout.addWidget(self.short_prefix_IME_box_input, 1, 1)
 
-        input_layout.addWidget(self.nominal_IME_box_label, 2, 0)
-        input_layout.addWidget(self.nominal_IME_box_input, 2, 1)
+        input_layout.addWidget(self.IME_box_serial_pattern_label, 2, 0)
+        input_layout.addWidget(self.IME_box_serial_pattern_input, 2, 1)
 
-        input_layout.addWidget(self.va_IME_box_label, 3, 0)
-        input_layout.addWidget(self.va_IME_box_input, 3, 1)
+        input_layout.addWidget(self.serial_IME_box_label, 3, 0)
+        input_layout.addWidget(self.serial_IME_box_input, 3, 1)
 
-        input_layout.addWidget(self.count_IME_box_label, 4, 0)
-        input_layout.addWidget(self.count_IME_box_input, 4, 1)
+        input_layout.addWidget(self.voltage_IME_box_label, 4, 0)
+        input_layout.addWidget(self.voltage_IME_box_input, 4, 1)
 
-        input_layout.addWidget(self.year_IME_box_label, 5, 0)
-        input_layout.addWidget(self.year_IME_box_input, 5, 1)
+        input_layout.addWidget(self.current_IME_box_label, 5, 0)
+        input_layout.addWidget(self.current_IME_box_input, 5, 1)
 
-        input_layout.addWidget(self.week_IME_box_label, 6, 0)
-        input_layout.addWidget(self.week_IME_box_input, 6, 1)
+        input_layout.addWidget(self.count_IME_box_label, 6, 0)
+        input_layout.addWidget(self.count_IME_box_input, 6, 1)
 
-        input_layout.addWidget(self.generate_IME_box_button, 7, 0, 1, 2)  # span columns
-        input_layout.addWidget(self.preview_IME_box_button, 8, 0, 1, 2)  # span columns
+        input_layout.addWidget(self.year_IME_box_label, 7, 0)
+        input_layout.addWidget(self.year_IME_box_input, 7, 1)
+
+        input_layout.addWidget(self.week_IME_box_label, 8, 0)
+        input_layout.addWidget(self.week_IME_box_input, 8, 1)
+
+        input_layout.addWidget(self.generate_IME_box_button, 9, 0, 1, 2)  # span columns
+        input_layout.addWidget(self.preview_IME_box_button, 10, 0, 1, 2)  # span columns
 
         self.boxes_tab.setLayout(input_layout)  # Встановлюємо layout для вкладки
 
@@ -522,6 +533,7 @@ class StickerGeneratorApp(QWidget):
 
         font_mapping = {
             "MyriadPro-Regular": resource_path("fonts/MyriadPro-Regular.ttf"),
+            "MyriadPro-Bold": resource_path("fonts/MyriadPro-Regular.ttf"),
             "Arial-BoldMT": resource_path("fonts/arial-mt-bold.ttf"),
             "ArialMT": resource_path("fonts/ArialMT-Light.ttf")
         }
