@@ -574,6 +574,7 @@ class StickerGeneratorApp(QWidget):
         article_pattern = r"^(TA|TT|TAS|TASS|TASO)\d+[C|B|D]\d+SE$"  # Шаблон для артикулу
         start_pattern = r"^(TA|TT|TAS|TASS|TASO)\d+$"  # Шаблон для початку заміни
 
+
         for page in doc:
             new_page = doc_output.new_page(width=page.rect.width, height=page.rect.height)
             new_page.show_pdf_page(new_page.rect, doc, page.number)
@@ -605,6 +606,26 @@ class StickerGeneratorApp(QWidget):
                             new_page.insert_text((x0, y0 + font_size), date_code, fontsize=font_size, color=(0, 0, 0),
                                                  fontfile=font_path, fontname=font_name)
 
+                        nominal_match = re.search(r"(\d{3,4})/5A", span_text)
+                        if nominal_match:
+                            extracted_nominal = nominal_match.group(1)
+                            try:
+                                extracted_nominal_int = int(extracted_nominal)
+                                if 100 <= extracted_nominal_int <= 9999:
+                                    x0, y0, a, b = bbox
+
+                                    # Замінюємо текст у span_text
+                                    new_span_text = span_text.replace(extracted_nominal, nominal)
+
+                                    new_page.add_redact_annot(bbox, fill=[255, 255, 255])
+                                    new_page.apply_redactions()
+                                    new_page.insert_text((x0, y0 + font_size), new_span_text,
+                                                         # Використовуємо new_span_text
+                                                         fontsize=font_size, color=(0, 0, 0), fontfile=font_path,
+                                                         fontname=font_name)
+                            except ValueError:
+                                print(f"Помилка: '{extracted_nominal}' не є дійсним числом.")
+
                         # Заміна артикулу на кожній сторінці
                         if re.fullmatch(article_pattern, span_text):
                             local_nominal = nominal
@@ -634,7 +655,7 @@ class StickerGeneratorApp(QWidget):
                         if re.match(start_pattern, span_text):
                             new_page.add_redact_annot(bbox, fill=[255, 255, 255])
                             new_page.apply_redactions()
-                            new_page.insert_text((x0, y0 + font_size), seria,
+                            new_page.insert_text((x0-1, y0 + font_size), seria,
                                                  fontsize=font_size, color=(0, 0, 0), fontfile=font_path,
                                                  fontname=font_name)
 
