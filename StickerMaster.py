@@ -543,6 +543,8 @@ class StickerGeneratorApp(QWidget):
                             new_page.apply_redactions()
                             if len(span_text) < len(new_text):
                                 x0 = x0 - ((len(new_text) - len(span_text)) * 3)
+                            elif len(span_text) > len(new_text):
+                                x0 = x0 + ((len(span_text) - len(new_text)) * 3)
                             new_page.insert_text((x0, y0 + font_size), new_text,
                                                  fontsize=font_size, color=(0, 0, 0), fontfile=font_path,
                                                  fontname=font_name)
@@ -552,6 +554,8 @@ class StickerGeneratorApp(QWidget):
                             new_page.apply_redactions()
                             if len(span_text) < len(short_prefix):
                                 x0 = x0 - ((len(short_prefix) - len(span_text)) * 3)
+                            elif len(span_text) > len(short_prefix):
+                                x0 = x0 + ((len(span_text) - len(short_prefix)) * 3)
                             new_page.insert_text((x0, y0 + font_size), short_prefix,
                                                  fontsize=font_size, color=(0, 0, 0), fontfile=font_path,
                                                  fontname=font_name)
