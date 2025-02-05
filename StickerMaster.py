@@ -28,6 +28,8 @@ class StickerGeneratorApp(QWidget):
             "Bahnschrift": resource_path("fonts/bahnschrift.ttf"),
             "MyriadPro-SemiboldCond": resource_path("fonts/MyriadPro-SemiboldCond.otf"),
             "MyriadPro-BlackSemiExt": resource_path("fonts/Myriad Pro Black SemiExtended.otf"),
+            "MyanmarText-Bold": resource_path("fonts/Myanmar Text Bold.TTF"),
+            "MinionPro-Bold": resource_path("fonts/Minion Pro Bold.ttf")
         }
 
         super().__init__()
@@ -331,12 +333,6 @@ class StickerGeneratorApp(QWidget):
         nominal = self.nominal_IME_standard_input.text()
         va = self.va_IME_standard_input.text()
 
-        article_code = self.extract_article_code(self.template_path, nominal)
-
-        if not article_code:
-            print("Артикул не знайдено")
-            return
-
         self.temp_preview_path = os.path.join(os.getcwd(), "tmp_preview.pdf")
         doc_output = fitz.open()
         self.modify_IME_standart_pdf(self.template_path, doc_output, f"{prefix}0001", date_code, nominal, va,
@@ -402,12 +398,6 @@ class StickerGeneratorApp(QWidget):
         nominal = self.nominal_IME_standard_input.text()
         va = self.va_IME_standard_input.text()
 
-        # Зчитуємо артикул з шаблону (припускаємо, що артикул міститься в першій сторінці шаблону)
-        article_code = self.extract_article_code(self.template_path, nominal)
-
-        if not article_code:
-            return  # Якщо артикул не знайдений, зупиняємо виконання
-
         folder = QFileDialog.getExistingDirectory(self, "Виберіть папку для збереження")
         if not folder:
             return
@@ -450,31 +440,16 @@ class StickerGeneratorApp(QWidget):
         doc_output.save(output_pdf)
         doc_output.close()
 
-    def extract_article_code(self, input_pdf, nominal):
-        """Функція для витягування артикулу з шаблону PDF та зміни номіналу"""
-        doc = fitz.open(input_pdf)
-        article_code_pattern = r"^(TA|TT|TAS|TASS|TASO)\d+[C|B|D]\d+SE$"
-        article_code = None
-
-        # Перевірка на наявність артикулу в тексті першої сторінки
-        page = doc[0]  # Першу сторінку PDF
-        text = page.get_text("text")
-        match = re.search(article_code_pattern, text, re.MULTILINE)
-
-        if match:
-            # Заміна номіналу в артикулі
-            article_code = match.group(0).replace("C600", f"C{nominal}")
-
-        doc.close()
-        return article_code
-
     def modify_IME_standart_pdf(self, input_pdf, doc_output, serial_number, date_code, nominal, va, short_prefix):
         doc = fitz.open(input_pdf)
         date_pattern = r"\d{2}W\d{2}"  # Шаблон для року і тижня
         serial_pattern = r"\d{10}"  # Шаблон для серійного номера
-        ipr_pattern = r"Ipr \d+A"  # Шаблон для пошуку "Ipr" та "A"
+        ipr_pattern = r"Ipr\d+A"  # Шаблон для пошуку "Ipr"
+        d_ipr_pattern = r"Ipr $"  # Шаблон для пошуку "Ipr" перед числом
         article_pattern = r"^(TA|TT|TAS|TASS|TASO)\d+[C|B|D]\d+SE$"  # Шаблон для артикулу
-        seria_pattern = r"^(TA|TT|TAS|TASS|TASO)\d+$"  # Шаблон для серії
+        seria_pattern = r"^(TA|TT|TAS|TASS|TASO)\d+B?$"  # Шаблон для серії
+
+        combined_pattern = r"^(TA|TT|TAS|TASS|TASO)\d+[C|B|D]\d+SE\s+(TA|TT|TAS|TASS|TASO)\d+B?"
 
         for page in doc:
             new_page = doc_output.new_page(width=page.rect.width, height=page.rect.height)
@@ -517,7 +492,17 @@ class StickerGeneratorApp(QWidget):
                             new_page.add_redact_annot(bbox, fill=[255, 255, 255])
                             new_page.apply_redactions()
                             new_page.insert_text((x0, y0 + font_size), f"Ipr {nominal}A", fontsize=font_size,
-                                                 color=(0, 0, 0))
+                                                 color=(0, 0, 0),
+                                                 fontfile=font_path, fontname=font_name)
+
+                        # Заміна номіналу в тексті після "Ipr" та перед "A"
+                        if re.match(d_ipr_pattern, span_text):
+                            bbox = x0, y0, a+15, b
+                            new_page.add_redact_annot(bbox, fill=[255, 255, 255])
+                            new_page.apply_redactions()
+                            new_page.insert_text((x0, y0 + font_size), f"Ipr {nominal}A", fontsize=font_size,
+                                                 color=(0, 0, 0),
+                                                 fontfile=font_path, fontname=font_name)
 
                         # Заміна артикулу на кожній сторінці
                         if re.fullmatch(article_pattern, span_text):
@@ -560,7 +545,36 @@ class StickerGeneratorApp(QWidget):
                                                  fontsize=font_size, color=(0, 0, 0), fontfile=font_path,
                                                  fontname=font_name)
 
+                        combined_match = re.search(combined_pattern, span_text)
+                        if combined_match:
+                            local_nominal = nominal
+                            letter = "B"
+                            try:
+                                nominal_int = int(nominal)
+                                if 100 <= nominal_int <= 999:
+                                    letter = "C"
+                                elif 1000 <= nominal_int <= 9999:
+                                    letter = "D"
+                                    local_nominal = nominal_int + 3
+                                else:
+                                    print("nominal має бути 3- або 4-значним числом.")
+                            except ValueError:
+                                print("Помилка: nominal має бути цілим числом.")
+
+                            new_text = f"{self.art_seria_IME_standard_input.text()}{letter}{local_nominal}SE     {short_prefix}"
+
+                            new_span_text = span_text.replace(span_text[combined_match.start():combined_match.end()],
+                                                              new_text)
+
+                            x0, y0, a, b = bbox
+                            new_page.add_redact_annot(bbox, fill=[255, 255, 255])
+                            new_page.apply_redactions()
+                            new_page.insert_text((x0, y0 + font_size), new_span_text,
+                                                 fontsize=font_size, color=(0, 0, 0), fontfile=font_path,
+                                                 fontname=font_name)
+
                         if re.match(r"^(15|10)$", span_text):
+                            bbox = x0, y0 + 1, a, b
                             new_page.add_redact_annot(bbox, fill=[255, 255, 255])
                             new_page.apply_redactions()
                             new_page.insert_text((x0, y0 + font_size - 0.1), va,
@@ -568,6 +582,7 @@ class StickerGeneratorApp(QWidget):
                                                  fontname=font_name)
 
                         if re.match(r"^(5|3)$", span_text):
+                            bbox = x0, y0+1, a, b
                             new_page.add_redact_annot(bbox, fill=[255, 255, 255])
                             new_page.apply_redactions()
                             va_num = int(va)
