@@ -107,6 +107,9 @@ class StickerGeneratorApp(QWidget):
         self.short_prefix_IME_standard_label = QLabel("Серія:")
         self.short_prefix_IME_standard_input = QLineEdit()
 
+        self.art_seria_IME_standard_label = QLabel("Серія в артикулі\nДо номіналу:")
+        self.art_seria_IME_standard_input = QLineEdit()
+
         self.nominal_IME_standard_label = QLabel("Номінал:")
         self.nominal_IME_standard_input = QLineEdit()
 
@@ -123,6 +126,7 @@ class StickerGeneratorApp(QWidget):
         self.week_IME_standard_input = QLineEdit()
 
         # Встановлюємо рамку для QLineEdit
+        self.art_seria_IME_standard_input.setStyleSheet("QLineEdit { border: 1px solid gray; }")
         self.prefix_IME_standard_input.setStyleSheet("QLineEdit { border: 1px solid gray; }")
         self.nominal_IME_standard_input.setStyleSheet("QLineEdit { border: 1px solid gray; }")
         self.va_IME_standard_input.setStyleSheet("QLineEdit { border: 1px solid gray; }")
@@ -197,20 +201,23 @@ class StickerGeneratorApp(QWidget):
         input_layout.addWidget(self.short_prefix_IME_standard_label, 2, 0)
         input_layout.addWidget(self.short_prefix_IME_standard_input, 2, 1)
 
-        input_layout.addWidget(self.nominal_IME_standard_label, 3, 0)
-        input_layout.addWidget(self.nominal_IME_standard_input, 3, 1)
+        input_layout.addWidget(self.art_seria_IME_standard_label, 3, 0)
+        input_layout.addWidget(self.art_seria_IME_standard_input, 3, 1)
 
-        input_layout.addWidget(self.va_IME_standard_label, 4, 0)
-        input_layout.addWidget(self.va_IME_standard_input, 4, 1)
+        input_layout.addWidget(self.nominal_IME_standard_label, 4, 0)
+        input_layout.addWidget(self.nominal_IME_standard_input, 4, 1)
 
-        input_layout.addWidget(self.count_IME_standard_label, 5, 0)
-        input_layout.addWidget(self.count_IME_standard_input, 5, 1)
+        input_layout.addWidget(self.va_IME_standard_label, 5, 0)
+        input_layout.addWidget(self.va_IME_standard_input, 5, 1)
 
-        input_layout.addWidget(self.year_IME_standard_label, 6, 0)
-        input_layout.addWidget(self.year_IME_standard_input, 6, 1)
+        input_layout.addWidget(self.count_IME_standard_label, 6, 0)
+        input_layout.addWidget(self.count_IME_standard_input, 6, 1)
 
-        input_layout.addWidget(self.week_IME_standard_label, 7, 0)
-        input_layout.addWidget(self.week_IME_standard_input, 7, 1)
+        input_layout.addWidget(self.year_IME_standard_label, 7, 0)
+        input_layout.addWidget(self.year_IME_standard_input, 7, 1)
+
+        input_layout.addWidget(self.week_IME_standard_label, 8, 0)
+        input_layout.addWidget(self.week_IME_standard_input, 8, 1)
 
         # Встановлюємо рамку для QLineEdit
         self.prefix_IME_standard_input.setStyleSheet("QLineEdit { border: 1px solid gray; }")
@@ -221,9 +228,8 @@ class StickerGeneratorApp(QWidget):
         self.year_IME_standard_input.setStyleSheet("QLineEdit { border: 1px solid gray; }")
         self.week_IME_standard_input.setStyleSheet("QLineEdit { border: 1px solid gray; }")
 
-        input_layout.addWidget(self.generate_IME_standard_button, 8, 0, 1, 2)
-
-        input_layout.addWidget(self.preview_IME_standard_button, 9, 0, 1, 2)
+        input_layout.addWidget(self.generate_IME_standard_button, 9, 0, 1, 2)
+        input_layout.addWidget(self.preview_IME_standard_button, 10, 0, 1, 2)
 
         self.standard_tab.setLayout(input_layout)  # Встановлюємо layout для вкладки
 
@@ -513,39 +519,39 @@ class StickerGeneratorApp(QWidget):
                             new_page.insert_text((x0, y0 + font_size), f"Ipr {nominal}A", fontsize=font_size,
                                                  color=(0, 0, 0))
 
-                            # Заміна артикулу на кожній сторінці
+                        # Заміна артикулу на кожній сторінці
                         if re.fullmatch(article_pattern, span_text):
-                            match = re.search(r"\d[ABCD]\d+", span_text)
-                            if match:
-                                num_before = match.group(0)[0]
-                                local_nominal = nominal
-                                letter = "B"
-                                try:
-                                    nominal_int = int(nominal)  # Перетворюємо nominal на ціле число
-                                    if 100 <= nominal_int <= 999:  # Перевіряємо, чи nominal 3-значне
-                                        letter = "C"
-                                    elif 1000 <= nominal_int <= 9999:  # Перевіряємо, чи nominal 4-значне
-                                        letter = "D"
-                                        local_nominal = nominal_int + 3  # Обчислюємо local_nominal
-                                        x0 -= 2
-                                    else:
-                                        # Обробка ситуації, коли nominal не 3-значне і не 4-значне
-                                        print("nominal має бути 3- або 4-значним числом.")
-                                except ValueError:
-                                    # Обробка помилки, якщо nominal не можна перетворити на ціле число
-                                    print("Помилка: nominal має бути цілим числом.")
+                            local_nominal = nominal
+                            letter = "B"
+                            try:
+                                nominal_int = int(nominal)  # Перетворюємо nominal на ціле число
+                                if 100 <= nominal_int <= 999:  # Перевіряємо, чи nominal 3-значне
+                                    letter = "C"
+                                elif 1000 <= nominal_int <= 9999:  # Перевіряємо, чи nominal 4-значне
+                                    letter = "D"
+                                    local_nominal = nominal_int + 3  # Обчислюємо local_nominal
+                                    x0 -= 2
+                                else:
+                                    # Обробка ситуації, коли nominal не 3-значне і не 4-значне
+                                    print("nominal має бути 3- або 4-значним числом.")
+                            except ValueError:
+                                # Обробка помилки, якщо nominal не можна перетворити на ціле число
+                                print("Помилка: nominal має бути цілим числом.")
 
-                                new_text = span_text.replace(match.group(0),
-                                                             f"{num_before}{letter}{local_nominal}")  # Замінюємо літеру + цифри на літеру + nominal
-                                new_page.add_redact_annot(bbox, fill=[255, 255, 255])
-                                new_page.apply_redactions()
-                                new_page.insert_text((x0, y0 + font_size), new_text,
-                                                     fontsize=font_size, color=(0, 0, 0), fontfile=font_path,
-                                                     fontname=font_name)
+                            new_text = f"{self.art_seria_IME_standard_input.text()}{letter}{local_nominal}SE"
+                            new_page.add_redact_annot(bbox, fill=[255, 255, 255])
+                            new_page.apply_redactions()
+                            if len(span_text) < len(new_text):
+                                x0 = x0 - ((len(new_text) - len(span_text)) * 3)
+                            new_page.insert_text((x0, y0 + font_size), new_text,
+                                                 fontsize=font_size, color=(0, 0, 0), fontfile=font_path,
+                                                 fontname=font_name)
 
                         if re.match(seria_pattern, span_text):
                             new_page.add_redact_annot(bbox, fill=[255, 255, 255])
                             new_page.apply_redactions()
+                            if len(span_text) < len(short_prefix):
+                                x0 = x0 - ((len(short_prefix) - len(span_text)) * 3)
                             new_page.insert_text((x0, y0 + font_size), short_prefix,
                                                  fontsize=font_size, color=(0, 0, 0), fontfile=font_path,
                                                  fontname=font_name)
@@ -573,7 +579,6 @@ class StickerGeneratorApp(QWidget):
         date_pattern = r"\d{2}W\d{2}"  # Шаблон для року і тижня
         article_pattern = r"^(TA|TT|TAS|TASS|TASO)\d+[C|B|D]\d+SE$"  # Шаблон для артикулу
         start_pattern = r"^(TA|TT|TAS|TASS|TASO)\d+$"  # Шаблон для початку заміни
-
 
         for page in doc:
             new_page = doc_output.new_page(width=page.rect.width, height=page.rect.height)
