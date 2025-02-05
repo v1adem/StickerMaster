@@ -446,6 +446,7 @@ class StickerGeneratorApp(QWidget):
         serial_pattern = r"\d{10}"  # Шаблон для серійного номера
         ipr_pattern = r"Ipr\d+A"  # Шаблон для пошуку "Ipr"
         d_ipr_pattern = r"Ipr $"  # Шаблон для пошуку "Ipr" перед числом
+        blank_ipr_pattern = r"Ipr \d+A"  # Шаблон для пошуку "Ipr "
         article_pattern = r"^(TA|TT|TAS|TASS|TASO)\d+[C|B|D]\d+SE$"  # Шаблон для артикулу
         seria_pattern = r"^(TA|TT|TAS|TASS|TASO)\d+B?$"  # Шаблон для серії
 
@@ -466,6 +467,8 @@ class StickerGeneratorApp(QWidget):
                         font_name = span["font"]  # Назва шрифту
 
                         font_path = self.font_mapping.get(font_name)
+
+                        print(span_text)
 
                         x0, y0, a, b = bbox
                         y0 += 0.1
@@ -497,6 +500,14 @@ class StickerGeneratorApp(QWidget):
 
                         # Заміна номіналу в тексті після "Ipr" та перед "A"
                         if re.match(d_ipr_pattern, span_text):
+                            bbox = x0, y0, a+15, b
+                            new_page.add_redact_annot(bbox, fill=[255, 255, 255])
+                            new_page.apply_redactions()
+                            new_page.insert_text((x0, y0 + font_size), f"Ipr {nominal}A", fontsize=font_size,
+                                                 color=(0, 0, 0),
+                                                 fontfile=font_path, fontname=font_name)
+
+                        if re.match(blank_ipr_pattern, span_text):
                             bbox = x0, y0, a+15, b
                             new_page.add_redact_annot(bbox, fill=[255, 255, 255])
                             new_page.apply_redactions()
