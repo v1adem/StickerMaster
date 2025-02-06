@@ -8,28 +8,19 @@ from PySide6.QtGui import QPixmap, Qt
 from PIL import ImageQt, Image
 
 
-def resource_path(relative_path):
-    if getattr(sys, 'frozen', False):
-        base_path = sys._MEIPASS
-    else:
-        base_path = os.path.abspath(".")
-
-    return os.path.join(base_path, relative_path)
-
-
 class StickerGeneratorApp(QWidget):
     def __init__(self):
 
         self.font_mapping = {
-            "MyriadPro-Regular": resource_path("fonts/MyriadPro-Regular.ttf"),
-            "MyriadPro-Bold": resource_path("fonts/MyriadPro-Bold.ttf"),
-            "Arial-BoldMT": resource_path("fonts/arial-mt-bold.ttf"),
-            "ArialMT": resource_path("fonts/ArialMT-Light.ttf"),
-            "Bahnschrift": resource_path("fonts/bahnschrift.ttf"),
-            "MyriadPro-SemiboldCond": resource_path("fonts/MyriadPro-SemiboldCond.otf"),
-            "MyriadPro-BlackSemiExt": resource_path("fonts/Myriad Pro Black SemiExtended.otf"),
-            "MyanmarText-Bold": resource_path("fonts/Myanmar Text Bold.TTF"),
-            "MinionPro-Bold": resource_path("fonts/Minion Pro Bold.ttf")
+            "MyriadPro-Regular": "fonts/MyriadPro-Regular.ttf",
+            "MyriadPro-Bold": "fonts/MyriadPro-Bold.ttf",
+            "Arial-BoldMT": "fonts/arial-mt-bold.ttf",
+            "ArialMT": "fonts/ArialMT-Light.ttf",
+            "Bahnschrift": "fonts/bahnschrift.ttf",
+            "MyriadPro-SemiboldCond": "fonts/MyriadPro-SemiboldCond.otf",
+            "MyriadPro-BlackSemiExt": "fonts/Myriad Pro Black SemiExtended.otf",
+            "MyanmarText-Bold": "fonts/Myanmar Text Bold.TTF",
+            "MinionPro-Bold": "fonts/Minion Pro Bold.ttf"
         }
 
         super().__init__()
@@ -468,8 +459,6 @@ class StickerGeneratorApp(QWidget):
 
                         font_path = self.font_mapping.get(font_name)
 
-                        print(span_text)
-
                         x0, y0, a, b = bbox
                         y0 += 0.1
                         bbox = x0, y0, a, b
@@ -608,7 +597,7 @@ class StickerGeneratorApp(QWidget):
         doc = fitz.open(input_pdf)
         date_pattern = r"\d{2}W\d{2}$"  # Шаблон для року і тижня
         article_pattern = r"(TA|TT|TAS|TASS|TASO)\d+[C|B|D]\d+SE"  # Шаблон для артикулу
-        start_pattern = r"(TA|TT|TAS|TASS|TASO)\d+B?$"
+        start_pattern = r"\s*(TA|TT|TAS|TASS|TASO)\d+B?$"
         date_article_combined_pattern = r"(\d{2}W\d{2})\s+(TAS\d+[A-Z]?[0-9]*)"
 
         for page in doc:
@@ -625,13 +614,9 @@ class StickerGeneratorApp(QWidget):
                         font_size = span["size"]  # Розмір шрифту
                         font_name = span["font"]  # Назва шрифту
 
+                        print("span_text: ", span_text)
+
                         font_path = self.font_mapping.get(font_name)
-
-                        print("span_text:", span_text)
-
-                        x0, y0, a, b = bbox
-                        #y0 += 0.1
-                        bbox = x0, y0, a, b
 
                         # Заміна дати
                         if re.match(date_pattern, span_text):
@@ -650,13 +635,13 @@ class StickerGeneratorApp(QWidget):
                             try:
                                 extracted_nominal_int = int(extracted_nominal)
                                 if 100 <= extracted_nominal_int <= 9999:
-                                    x0, y0, a, b = bbox
-
                                     # Замінюємо текст у span_text
                                     new_span_text = span_text.replace(extracted_nominal, nominal)
-
+                                    x0, y0, a, b = bbox
+                                    bbox = x0, y0, a, b
                                     new_page.add_redact_annot(bbox, fill=[255, 255, 255])
                                     new_page.apply_redactions()
+
                                     new_page.insert_text((x0, y0 + font_size), new_span_text,
                                                          # Використовуємо new_span_text
                                                          fontsize=font_size, color=(0, 0, 0), fontfile=font_path,
@@ -691,6 +676,12 @@ class StickerGeneratorApp(QWidget):
                                                  fontname=font_name)
 
                         if re.match(start_pattern, span_text):
+                            x0, y0, a, b = bbox
+                            x0 += 1
+                            y0 += 1
+                            a -= 1
+                            b -= 1
+                            bbox = x0, y0, a, b
                             new_page.add_redact_annot(bbox, fill=[255, 255, 255])
                             new_page.apply_redactions()
                             new_page.insert_text((x0-1, y0 + font_size), seria,
