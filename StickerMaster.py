@@ -443,7 +443,7 @@ class StickerGeneratorApp(QWidget):
     def modify_IME_standart_pdf(self, input_pdf, doc_output, serial_number, date_code, nominal, va, short_prefix):
         doc = fitz.open(input_pdf)
         date_pattern = r"\d{2}W\d{2}"  # Шаблон для року і тижня
-        serial_pattern = r"\d{10}"  # Шаблон для серійного номера
+        serial_pattern = r"^\s*\d{10}\s*$"  # Шаблон для серійного номера
         ipr_pattern = r"Ipr\d+A"  # Шаблон для пошуку "Ipr"
         d_ipr_pattern = r"Ipr $"  # Шаблон для пошуку "Ipr" перед числом
         blank_ipr_pattern = r"Ipr \d+A"  # Шаблон для пошуку "Ipr "
@@ -606,9 +606,10 @@ class StickerGeneratorApp(QWidget):
 
     def modify_IME_box_pdf(self, input_pdf, doc_output, date_code, nominal, seria):
         doc = fitz.open(input_pdf)
-        date_pattern = r"\d{2}W\d{2}"  # Шаблон для року і тижня
-        article_pattern = r"^(TA|TT|TAS|TASS|TASO)\d+[C|B|D]\d+SE$"  # Шаблон для артикулу
-        start_pattern = r"^(TA|TT|TAS|TASS|TASO)\d+$"  # Шаблон для початку заміни
+        date_pattern = r"\d{2}W\d{2}$"  # Шаблон для року і тижня
+        article_pattern = r"(TA|TT|TAS|TASS|TASO)\d+[C|B|D]\d+SE"  # Шаблон для артикулу
+        start_pattern = r"(TA|TT|TAS|TASS|TASO)\d+B?$"
+        date_article_combined_pattern = r"(\d{2}W\d{2})\s+(TAS\d+[A-Z]?[0-9]*)"
 
         for page in doc:
             new_page = doc_output.new_page(width=page.rect.width, height=page.rect.height)
@@ -626,6 +627,8 @@ class StickerGeneratorApp(QWidget):
 
                         font_path = self.font_mapping.get(font_name)
 
+                        print("span_text:", span_text)
+
                         x0, y0, a, b = bbox
                         #y0 += 0.1
                         bbox = x0, y0, a, b
@@ -634,11 +637,11 @@ class StickerGeneratorApp(QWidget):
                         if re.match(date_pattern, span_text):
                             print(font_name)
                             x0, y0, a, b = bbox
-                            b -= 1
+                            a -= 1
                             bbox = x0, y0, a, b
                             new_page.add_redact_annot(bbox, fill=[255, 255, 255])
                             new_page.apply_redactions()
-                            new_page.insert_text((x0, y0 + font_size), date_code, fontsize=font_size, color=(0, 0, 0),
+                            new_page.insert_text((x0-1, y0 + font_size), date_code, fontsize=font_size, color=(0, 0, 0),
                                                  fontfile=font_path, fontname=font_name)
 
                         nominal_match = re.search(r"(\d{3,4})/5A", span_text)
@@ -691,6 +694,33 @@ class StickerGeneratorApp(QWidget):
                             new_page.add_redact_annot(bbox, fill=[255, 255, 255])
                             new_page.apply_redactions()
                             new_page.insert_text((x0-1, y0 + font_size), seria,
+                                                 fontsize=font_size, color=(0, 0, 0), fontfile=font_path,
+                                                 fontname=font_name)
+
+                        date_article_match = re.search(date_article_combined_pattern, span_text)
+                        if date_article_match:
+                            combined_x0, combined_y0, combined_x1, combined_y1 = bbox
+
+                            extracted_date = date_article_match.group(1)
+                            extracted_seria = date_article_match.group(2)
+
+                            date_width = len(extracted_date) * 3  # Приблизна ширина дати
+                            seria_width = len(extracted_seria) * 3  # Приблизна ширина розділювача
+
+                            # Замінюємо дату
+                            new_page.add_redact_annot((combined_x0, combined_y0, combined_x0 + date_width - 0.2, combined_y1 - 0.3),
+                                                      fill=[255, 255, 255])
+                            new_page.apply_redactions()
+                            new_page.insert_text((combined_x0-4, combined_y0 + font_size), date_code, fontsize=font_size,
+                                                 color=(0, 0, 0),
+                                                 fontfile=font_path, fontname=font_name)
+
+                            # Замінюємо серію
+                            seria_x0 = combined_x0 + date_width + 2
+                            new_page.add_redact_annot((seria_x0, combined_y0, seria_x0 + seria_width, combined_y1 - 0.3),
+                                                      fill=[255, 255, 255])  # Приблизна ширина для серії
+                            new_page.apply_redactions()
+                            new_page.insert_text((seria_x0+1, combined_y0 + font_size), seria,
                                                  fontsize=font_size, color=(0, 0, 0), fontfile=font_path,
                                                  fontname=font_name)
 
