@@ -614,13 +614,10 @@ class StickerGeneratorApp(QWidget):
                         font_size = span["size"]  # Розмір шрифту
                         font_name = span["font"]  # Назва шрифту
 
-                        print("span_text: ", span_text)
-
                         font_path = self.font_mapping.get(font_name)
 
                         # Заміна дати
                         if re.match(date_pattern, span_text):
-                            print(font_name)
                             x0, y0, a, b = bbox
                             a -= 1
                             bbox = x0, y0, a, b
@@ -671,6 +668,7 @@ class StickerGeneratorApp(QWidget):
                             new_text = f"{self.art_seria_IME_box_input.text()}{letter}{local_nominal}SE"
                             new_page.add_redact_annot(bbox, fill=[255, 255, 255])
                             new_page.apply_redactions()
+                            x0, y0, a, b = bbox
                             new_page.insert_text((x0, y0 + font_size), new_text,
                                                  fontsize=font_size, color=(0, 0, 0), fontfile=font_path,
                                                  fontname=font_name)
