@@ -20,7 +20,11 @@ class StickerGeneratorApp(QWidget):
             "MyriadPro-SemiboldCond": "fonts/MyriadPro-SemiboldCond.otf",
             "MyriadPro-BlackSemiExt": "fonts/Myriad Pro Black SemiExtended.otf",
             "MyanmarText-Bold": "fonts/Myanmar Text Bold.TTF",
-            "MinionPro-Bold": "fonts/Minion Pro Bold.ttf"
+            "MinionPro-Bold": "fonts/Minion Pro Bold.ttf",
+            "RJWHAAå¼«MyriadPro-Semib": "fonts/MyriadPro-SemiboldCond.otf",
+            "JFXDXWå¼«MyriadPro-Bold": "fonts/MyriadPro-Bold.ttf",
+            "LCJXNXå¼«MinionPro-Bold": "fonts/Minion Pro Bold.ttf",
+            "ZPRMHKå¼«MyriadPro-Regul": "fonts/MyriadPro-Regular.ttf",
         }
 
         super().__init__()
@@ -118,6 +122,15 @@ class StickerGeneratorApp(QWidget):
         self.week_IME_standard_label = QLabel("Тиждень:")
         self.week_IME_standard_input = QLineEdit()
 
+        self.va_cl_02s_IME_standard_label = QLabel("VA (CL 0.2S):")
+        self.va_cl_02_IME_standard_label = QLabel("VA (CL 0.2):")
+        self.va_cl_05s_IME_standard_label = QLabel("VA (CL 0.5S):")
+
+        # Додаємо нові поля VA
+        self.va_cl_02s_IME_standard_input = QLineEdit()
+        self.va_cl_02_IME_standard_input = QLineEdit()
+        self.va_cl_05s_IME_standard_input = QLineEdit()
+
         # Встановлюємо рамку для QLineEdit
         self.art_seria_IME_standard_input.setStyleSheet("QLineEdit { border: 1px solid gray; }")
         self.prefix_IME_standard_input.setStyleSheet("QLineEdit { border: 1px solid gray; }")
@@ -126,6 +139,9 @@ class StickerGeneratorApp(QWidget):
         self.count_IME_standard_input.setStyleSheet("QLineEdit { border: 1px solid gray; }")
         self.year_IME_standard_input.setStyleSheet("QLineEdit { border: 1px solid gray; }")
         self.week_IME_standard_input.setStyleSheet("QLineEdit { border: 1px solid gray; }")
+        self.va_cl_02s_IME_standard_input.setStyleSheet("QLineEdit { border: 1px solid gray; }")
+        self.va_cl_02_IME_standard_input.setStyleSheet("QLineEdit { border: 1px solid gray; }")
+        self.va_cl_05s_IME_standard_input.setStyleSheet("QLineEdit { border: 1px solid gray; }")
 
         self.generate_IME_standard_button = QPushButton("Згенерувати PDF")
         self.generate_IME_standard_button.clicked.connect(self.generate_IME_standard_pdfs)
@@ -224,6 +240,20 @@ class StickerGeneratorApp(QWidget):
         input_layout.addWidget(self.generate_IME_standard_button, 9, 0, 1, 2)
         input_layout.addWidget(self.preview_IME_standard_button, 10, 0, 1, 2)
 
+        input_layout.addWidget(self.va_cl_02s_IME_standard_label, 11, 0)
+        input_layout.addWidget(self.va_cl_02s_IME_standard_input, 11, 1)
+        input_layout.addWidget(self.va_cl_02_IME_standard_label, 12, 0)
+        input_layout.addWidget(self.va_cl_02_IME_standard_input, 12, 1)
+        input_layout.addWidget(self.va_cl_05s_IME_standard_label, 13, 0)
+        input_layout.addWidget(self.va_cl_05s_IME_standard_input, 13, 1)
+
+        self.va_cl_02s_IME_standard_label.setVisible(False)
+        self.va_cl_02s_IME_standard_input.setVisible(False)
+        self.va_cl_02_IME_standard_label.setVisible(False)
+        self.va_cl_02_IME_standard_input.setVisible(False)
+        self.va_cl_05s_IME_standard_label.setVisible(False)
+        self.va_cl_05s_IME_standard_input.setVisible(False)
+
         self.standard_tab.setLayout(input_layout)  # Встановлюємо layout для вкладки
 
     def create_IME_box_tab(self):
@@ -268,10 +298,32 @@ class StickerGeneratorApp(QWidget):
         if selected_template != "- Шаблон не обрано -":
             self.template_path = self.standard_templates[selected_template]
             self.display_template_preview(self.template_path)
+
+            # Відображаємо або приховуємо поля VA залежно від шаблону
+            is_special_template = selected_template.endswith("_special_1")
+            self.va_IME_standard_label.setVisible(not is_special_template)
+            self.va_IME_standard_input.setVisible(not is_special_template)
+            self.va_cl_02s_IME_standard_label.setVisible(is_special_template)
+            self.va_cl_02s_IME_standard_input.setVisible(is_special_template)
+            self.va_cl_02_IME_standard_label.setVisible(is_special_template)
+            self.va_cl_02_IME_standard_input.setVisible(is_special_template)
+            self.va_cl_05s_IME_standard_label.setVisible(is_special_template)
+            self.va_cl_05s_IME_standard_input.setVisible(is_special_template)
         else:
             self.template_path = ""
             self.template_pixmap = None
             self.template_preview_label.clear()
+
+            # Приховуємо поля VA, якщо шаблон не обрано
+            self.va_IME_standard_label.setVisible(True)
+            self.va_IME_standard_input.setVisible(True)
+            self.va_cl_02s_IME_standard_label.setVisible(False)
+            self.va_cl_02s_IME_standard_input.setVisible(False)
+            self.va_cl_02_IME_standard_label.setVisible(False)
+            self.va_cl_02_IME_standard_input.setVisible(False)
+            self.va_cl_05s_IME_standard_label.setVisible(False)
+            self.va_cl_05s_IME_standard_input.setVisible(False)
+
 
     def select_box_template(self):
         selected_template = self.IME_box_template_combo.currentText()
@@ -326,8 +378,15 @@ class StickerGeneratorApp(QWidget):
 
         self.temp_preview_path = os.path.join(os.getcwd(), "tmp_preview.pdf")
         doc_output = fitz.open()
-        self.modify_IME_standart_pdf(self.template_path, doc_output, f"{prefix}0001", date_code, nominal, va,
-                                     short_prefix)
+        if "special_1" in self.template_path:
+            va_cl_02s = self.va_cl_02s_IME_standard_input.text()
+            va_cl_02 = self.va_cl_02_IME_standard_input.text()
+            va_cl_05s = self.va_cl_05s_IME_standard_input.text()
+            self.modify_IME_standart_pdf(self.template_path, doc_output, f"{prefix}0001", date_code, nominal,
+                                         va_cl_02s, short_prefix, va_cl_02, va_cl_05s)
+        else:
+            self.modify_IME_standart_pdf(self.template_path, doc_output, f"{prefix}0001", date_code, nominal, va,
+                                         short_prefix)
         doc_output.save(self.temp_preview_path)
         doc_output.close()
 
@@ -394,13 +453,22 @@ class StickerGeneratorApp(QWidget):
             return
 
         # Формуємо назву файлу
-        output_pdf = os.path.join(folder, f"{short_prefix} {date_code}-{count}шт.pdf")
+        output_pdf = os.path.join(folder, f"{short_prefix} {nominal}A {date_code}-{count}шт.pdf")
         doc_output = fitz.open()  # Новий PDF документ для збереження всіх сторінок
 
-        for i in range(1, count + 1):
-            serial_number = f"{prefix}{i:04}"
-            self.modify_IME_standart_pdf(self.template_path, doc_output, serial_number, date_code, nominal, va,
-                                         short_prefix)
+        if "special_1" in self.template_path:
+            va_cl_02s = self.va_cl_02s_IME_standard_input.text()
+            va_cl_02 = self.va_cl_02_IME_standard_input.text()
+            va_cl_05s = self.va_cl_05s_IME_standard_input.text()
+            for i in range(1, count + 1):
+                serial_number = f"{prefix}{i:04}"
+                self.modify_IME_standart_pdf(self.template_path, doc_output, serial_number, date_code, nominal,
+                                             va_cl_02s, short_prefix, va_cl_02, va_cl_05s)
+        else:
+            for i in range(1, count + 1):
+                serial_number = f"{prefix}{i:04}"
+                self.modify_IME_standart_pdf(self.template_path, doc_output, serial_number, date_code, nominal, va,
+                                             short_prefix)
 
         # Зберегти фінальний PDF файл з усіма сторінками
         doc_output.save(output_pdf)
@@ -431,7 +499,7 @@ class StickerGeneratorApp(QWidget):
         doc_output.save(output_pdf)
         doc_output.close()
 
-    def modify_IME_standart_pdf(self, input_pdf, doc_output, serial_number, date_code, nominal, va, short_prefix):
+    def modify_IME_standart_pdf(self, input_pdf, doc_output, serial_number, date_code, nominal, va, short_prefix, va_cl_02=None, va_cl_05s=None):
         doc = fitz.open(input_pdf)
         date_pattern = r"\d{2}W\d{2}"  # Шаблон для року і тижня
         serial_pattern = r"^\s*\d{10}\s*$"  # Шаблон для серійного номера
@@ -440,6 +508,9 @@ class StickerGeneratorApp(QWidget):
         blank_ipr_pattern = r"Ipr \d+A"  # Шаблон для пошуку "Ipr "
         article_pattern = r"^(TA|TT|TAS|TASS|TASO)\d+[C|B|D]\d+SE$"  # Шаблон для артикулу
         seria_pattern = r"^(TA|TT|TAS|TASS|TASO)\d+B?$"  # Шаблон для серії
+
+        special_article_pattern = r"TASL50C6003S\+1,2/6KV\s{6}TAS65"
+        is_special_template = input_pdf.endswith("_special_1.pdf")
 
         combined_pattern = r"^(TA|TT|TAS|TASS|TASO)\d+[C|B|D]\d+SE\s+(TA|TT|TAS|TASS|TASO)\d+B?"
 
@@ -458,6 +529,8 @@ class StickerGeneratorApp(QWidget):
                         font_name = span["font"]  # Назва шрифту
 
                         font_path = self.font_mapping.get(font_name)
+
+                        print(span_text)
 
                         x0, y0, a, b = bbox
                         y0 += 0.1
@@ -573,23 +646,72 @@ class StickerGeneratorApp(QWidget):
                                                  fontsize=font_size, color=(0, 0, 0), fontfile=font_path,
                                                  fontname=font_name)
 
-                        if re.match(r"^(15|10)$", span_text):
-                            bbox = x0, y0 + 1, a, b
-                            new_page.add_redact_annot(bbox, fill=[255, 255, 255])
-                            new_page.apply_redactions()
-                            new_page.insert_text((x0, y0 + font_size - 0.1), va,
-                                                 fontsize=font_size, color=(0, 0, 0), fontfile=font_path,
-                                                 fontname=font_name)
+                        if is_special_template:
+                            if re.fullmatch(special_article_pattern, span_text):
+                                local_nominal = nominal
+                                letter = "B"
+                                try:
+                                    nominal_int = int(nominal)
+                                    if 100 <= nominal_int <= 999:
+                                        letter = "C"
+                                    elif 1000 <= nominal_int <= 9999:
+                                        letter = "D"
+                                        local_nominal = nominal_int + 3
+                                    else:
+                                        print("nominal має бути 3- або 4-значним числом.")
+                                except ValueError:
+                                    print("Помилка: nominal має бути цілим числом.")
 
-                        if re.match(r"^(5|3)$", span_text):
-                            bbox = x0, y0+1, a, b
-                            new_page.add_redact_annot(bbox, fill=[255, 255, 255])
-                            new_page.apply_redactions()
-                            va_num = int(va)
-                            minus = 0 if va_num < 9 else 2
-                            new_page.insert_text((x0-minus, y0 + font_size - 0.1), va,
-                                                 fontsize=font_size, color=(0, 0, 0), fontfile=font_path,
-                                                 fontname=font_name)
+                                new_text = f"{self.art_seria_IME_standard_input.text()}{letter}{local_nominal}S+1,2/6KV      {short_prefix}"
+                                x0, y0, a, b = bbox
+                                new_page.add_redact_annot(bbox, fill=[255, 255, 255])
+                                new_page.apply_redactions()
+                                new_page.insert_text((x0, y0 + font_size), new_text,
+                                                     fontsize=font_size, color=(0, 0, 0), fontfile=font_path,
+                                                     fontname=font_name)
+
+                            if re.match(r"^1$", span_text):
+                                bbox = x0, y0 + 1, a, b
+                                new_page.add_redact_annot(bbox, fill=[255, 255, 255])
+                                new_page.apply_redactions()
+                                new_page.insert_text((x0, y0 + font_size - 0.1), va,
+                                                     fontsize=font_size, color=(0, 0, 0), fontfile=font_path,
+                                                     fontname=font_name)
+
+                            if re.match(r"^3$", span_text):
+                                bbox = x0, y0 + 1, a, b
+                                new_page.add_redact_annot(bbox, fill=[255, 255, 255])
+                                new_page.apply_redactions()
+                                new_page.insert_text((x0, y0 + font_size - 0.1), va_cl_02,
+                                                     fontsize=font_size, color=(0, 0, 0), fontfile=font_path,
+                                                     fontname=font_name)
+
+                            if re.match(r"^5$", span_text):
+                                bbox = x0, y0 + 1, a, b
+                                new_page.add_redact_annot(bbox, fill=[255, 255, 255])
+                                new_page.apply_redactions()
+                                new_page.insert_text((x0, y0 + font_size - 0.1), va_cl_05s,
+                                                     fontsize=font_size, color=(0, 0, 0), fontfile=font_path,
+                                                     fontname=font_name)
+
+                        else:
+                            if re.match(r"^(15|10)$", span_text):
+                                bbox = x0, y0 + 1, a, b
+                                new_page.add_redact_annot(bbox, fill=[255, 255, 255])
+                                new_page.apply_redactions()
+                                new_page.insert_text((x0, y0 + font_size - 0.1), va,
+                                                     fontsize=font_size, color=(0, 0, 0), fontfile=font_path,
+                                                     fontname=font_name)
+
+                            if re.match(r"^(5|3)$", span_text):
+                                bbox = x0, y0+1, a, b
+                                new_page.add_redact_annot(bbox, fill=[255, 255, 255])
+                                new_page.apply_redactions()
+                                va_num = int(va)
+                                minus = 0 if va_num < 9 else 2
+                                new_page.insert_text((x0-minus, y0 + font_size - 0.1), va,
+                                                     fontsize=font_size, color=(0, 0, 0), fontfile=font_path,
+                                                     fontname=font_name)
 
         doc.close()
 
@@ -615,6 +737,8 @@ class StickerGeneratorApp(QWidget):
                         font_name = span["font"]  # Назва шрифту
 
                         font_path = self.font_mapping.get(font_name)
+
+                        print(span_text)
 
                         # Заміна дати
                         if re.match(date_pattern, span_text):
