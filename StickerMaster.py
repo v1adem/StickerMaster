@@ -15,8 +15,14 @@ class StickerGeneratorApp(QWidget):
             "MyriadPro-Regular": "fonts/MyriadPro-Regular.ttf",
             "MyriadPro-Bold": "fonts/MyriadPro-Bold.ttf",
             "Arial-BoldMT": "fonts/arial-mt-bold.ttf",
+            "YVUNJSå¼«Arial-BoldMT": "fonts/4068-font.ttf",#
             "ArialMT": "fonts/ArialMT-Light.ttf",
             "Bahnschrift": "fonts/bahnschrift.ttf",
+            "STGONDå¼«Bahnschrift": "fonts/bahnschrift.ttf",
+            "JIZLJBå¼«Bahnschrift": "fonts/bahnschrift.ttf",
+            "RHTNZFå¼«Bahnschrift": "fonts/bahnschrift.ttf",
+            "WHCMRVå¼«Bahnschrift": "fonts/bahnschrift.ttf",
+            "IMEGDXå¼«Bahnschrift": "fonts/bahnschrift.ttf",
             "MyriadPro-SemiboldCond": "fonts/MyriadPro-SemiboldCond.otf",
             "MyriadPro-BlackSemiExt": "fonts/Myriad Pro Black SemiExtended.otf",
             "MyanmarText-Bold": "fonts/Myanmar Text Bold.TTF",
@@ -44,9 +50,9 @@ class StickerGeneratorApp(QWidget):
                     template_name = filename[:-4]  # Видаляємо розширення .pdf
                     file_path = os.path.join(self.templates_dir, filename)
                     if template_name.startswith("standard_"):  # Розрізняємо за префіксом
-                        self.standard_templates[template_name[9:]] = file_path # Видаляємо префікс "standard_"
+                        self.standard_templates[template_name[9:]] = file_path  # Видаляємо префікс "standard_"
                     elif template_name.startswith("box_"):
-                        self.box_templates[template_name[4:]] = file_path # Видаляємо префікс "box_"
+                        self.box_templates[template_name[4:]] = file_path  # Видаляємо префікс "box_"
         except FileNotFoundError:
             QMessageBox.critical(self, "Помилка", f"Папка з шаблонами '{self.templates_dir}' не знайдена!")
             return
@@ -96,7 +102,8 @@ class StickerGeneratorApp(QWidget):
         self.IME_standard_template_combo.addItem("- Шаблон не обрано -")  # Пункт за замовчуванням
         for template_name in sorted(self.standard_templates.keys()):  # Сортуємо за алфавітом
             self.IME_standard_template_combo.addItem(template_name)
-        self.IME_standard_template_combo.currentIndexChanged.connect(self.select_standard_template)  # Connect to new function
+        self.IME_standard_template_combo.currentIndexChanged.connect(
+            self.select_standard_template)  # Connect to new function
 
         self.prefix_IME_standard_label = QLabel("Перші 6 цифр серійного номеру:")
         self.prefix_IME_standard_input = QLineEdit()
@@ -324,16 +331,18 @@ class StickerGeneratorApp(QWidget):
             self.va_cl_05s_IME_standard_label.setVisible(False)
             self.va_cl_05s_IME_standard_input.setVisible(False)
 
-
     def select_box_template(self):
         selected_template = self.IME_box_template_combo.currentText()
         if selected_template != "- Шаблон не обрано -":
             self.template_path = self.box_templates[selected_template]
             self.display_template_preview(self.template_path)
+            # Додаємо визначення чи шаблон спецільний
+            self.is_box_special_template = selected_template.endswith("_box_special_1")
         else:
             self.template_path = ""
             self.template_pixmap = None
             self.template_preview_label.clear()
+            self.is_box_special_template = False
 
     def display_template_preview(self, file_path):
         try:
@@ -416,7 +425,11 @@ class StickerGeneratorApp(QWidget):
 
         self.temp_preview_path = os.path.join(os.getcwd(), "tmp_preview.pdf")
         doc_output = fitz.open()
-        self.modify_IME_box_pdf(self.template_path, doc_output, date_code, nominal, short_prefix)
+        # Додаємо перевірку на спецільний шаблон
+        if self.is_box_special_template:
+            self.modify_IME_special_box_pdf(self.template_path, doc_output, nominal, short_prefix)
+        else:
+            self.modify_IME_box_pdf(self.template_path, doc_output, date_code, nominal, short_prefix)
         doc_output.save(self.temp_preview_path)
         doc_output.close()
 
@@ -489,17 +502,22 @@ class StickerGeneratorApp(QWidget):
             return
 
         # Формуємо назву файлу
-        output_pdf = os.path.join(folder, f"{seria} {nominal} {date_code}-КОРОБКА-{count}шт.pdf")
+        output_pdf = os.path.join(folder, f"{seria} {nominal}A {date_code}-КОРОБКА-{count}шт.pdf")
         doc_output = fitz.open()  # Новий PDF документ для збереження всіх сторінок
 
         for i in range(1, count + 1):
-            self.modify_IME_box_pdf(self.template_path, doc_output, date_code, nominal, seria)
+            # Додаємо перевірку на спецільний шаблон
+            if self.is_box_special_template:
+                self.modify_IME_special_box_pdf(self.template_path, doc_output, nominal, seria)
+            else:
+                self.modify_IME_box_pdf(self.template_path, doc_output, date_code, nominal, seria)
 
         # Зберегти фінальний PDF файл з усіма сторінками
         doc_output.save(output_pdf)
         doc_output.close()
 
-    def modify_IME_standart_pdf(self, input_pdf, doc_output, serial_number, date_code, nominal, va, short_prefix, va_cl_02=None, va_cl_05s=None):
+    def modify_IME_standart_pdf(self, input_pdf, doc_output, serial_number, date_code, nominal, va, short_prefix,
+                                va_cl_02=None, va_cl_05s=None):
         doc = fitz.open(input_pdf)
         date_pattern = r"\d{2}W\d{2}"  # Шаблон для року і тижня
         serial_pattern = r"^\s*\d{10}\s*$"  # Шаблон для серійного номера
@@ -562,7 +580,7 @@ class StickerGeneratorApp(QWidget):
 
                         # Заміна номіналу в тексті після "Ipr" та перед "A"
                         if re.match(d_ipr_pattern, span_text):
-                            bbox = x0, y0, a+15, b
+                            bbox = x0, y0, a + 15, b
                             new_page.add_redact_annot(bbox, fill=[255, 255, 255])
                             new_page.apply_redactions()
                             new_page.insert_text((x0, y0 + font_size), f"Ipr {nominal}A", fontsize=font_size,
@@ -570,7 +588,7 @@ class StickerGeneratorApp(QWidget):
                                                  fontfile=font_path, fontname=font_name)
 
                         if re.match(blank_ipr_pattern, span_text):
-                            bbox = x0, y0, a+15, b
+                            bbox = x0, y0, a + 15, b
                             new_page.add_redact_annot(bbox, fill=[255, 255, 255])
                             new_page.apply_redactions()
                             new_page.insert_text((x0, y0 + font_size), f"Ipr {nominal}A", fontsize=font_size,
@@ -704,12 +722,12 @@ class StickerGeneratorApp(QWidget):
                                                      fontname=font_name)
 
                             if re.match(r"^(5|3)$", span_text):
-                                bbox = x0, y0+1, a, b
+                                bbox = x0, y0 + 1, a, b
                                 new_page.add_redact_annot(bbox, fill=[255, 255, 255])
                                 new_page.apply_redactions()
                                 va_num = int(va)
                                 minus = 0 if va_num < 9 else 2
-                                new_page.insert_text((x0-minus, y0 + font_size - 0.1), va,
+                                new_page.insert_text((x0 - minus, y0 + font_size - 0.1), va,
                                                      fontsize=font_size, color=(0, 0, 0), fontfile=font_path,
                                                      fontname=font_name)
 
@@ -747,7 +765,8 @@ class StickerGeneratorApp(QWidget):
                             bbox = x0, y0, a, b
                             new_page.add_redact_annot(bbox, fill=[255, 255, 255])
                             new_page.apply_redactions()
-                            new_page.insert_text((x0-1, y0 + font_size), date_code, fontsize=font_size, color=(0, 0, 0),
+                            new_page.insert_text((x0 - 1, y0 + font_size), date_code, fontsize=font_size,
+                                                 color=(0, 0, 0),
                                                  fontfile=font_path, fontname=font_name)
 
                         nominal_match = re.search(r"(\d{3,4})/5A", span_text)
@@ -806,7 +825,7 @@ class StickerGeneratorApp(QWidget):
                             bbox = x0, y0, a, b
                             new_page.add_redact_annot(bbox, fill=[255, 255, 255])
                             new_page.apply_redactions()
-                            new_page.insert_text((x0-1, y0 + font_size), seria,
+                            new_page.insert_text((x0 - 3, y0 + font_size), seria,
                                                  fontsize=font_size, color=(0, 0, 0), fontfile=font_path,
                                                  fontname=font_name)
 
@@ -821,23 +840,151 @@ class StickerGeneratorApp(QWidget):
                             seria_width = len(extracted_seria) * 3  # Приблизна ширина розділювача
 
                             # Замінюємо дату
-                            new_page.add_redact_annot((combined_x0, combined_y0, combined_x0 + date_width - 0.2, combined_y1 - 0.3),
-                                                      fill=[255, 255, 255])
+                            new_page.add_redact_annot(
+                                (combined_x0, combined_y0, combined_x0 + date_width - 0.2, combined_y1 - 0.3),
+                                fill=[255, 255, 255])
                             new_page.apply_redactions()
-                            new_page.insert_text((combined_x0-4, combined_y0 + font_size), date_code, fontsize=font_size,
+                            new_page.insert_text((combined_x0 - 4, combined_y0 + font_size), date_code,
+                                                 fontsize=font_size,
                                                  color=(0, 0, 0),
                                                  fontfile=font_path, fontname=font_name)
 
                             # Замінюємо серію
                             seria_x0 = combined_x0 + date_width + 2
-                            new_page.add_redact_annot((seria_x0, combined_y0, seria_x0 + seria_width, combined_y1 - 0.3),
-                                                      fill=[255, 255, 255])  # Приблизна ширина для серії
+                            new_page.add_redact_annot(
+                                (seria_x0, combined_y0, seria_x0 + seria_width, combined_y1 - 0.3),
+                                fill=[255, 255, 255])  # Приблизна ширина для серії
                             new_page.apply_redactions()
-                            new_page.insert_text((seria_x0+1, combined_y0 + font_size), seria,
+                            new_page.insert_text((seria_x0 + 1, combined_y0 + font_size), seria,
                                                  fontsize=font_size, color=(0, 0, 0), fontfile=font_path,
                                                  fontname=font_name)
 
         doc.close()
+
+    def modify_IME_special_box_pdf(self, input_pdf, doc_output, nominal, seria):
+        doc = fitz.open(input_pdf)
+        year = self.year_IME_box_input.text()
+        week = self.week_IME_box_input.text()
+
+        for page in doc:
+            new_page = doc_output.new_page(width=page.rect.width, height=page.rect.height)
+            new_page.show_pdf_page(new_page.rect, doc, page.number)
+
+            text_blocks = page.get_text("dict")["blocks"]
+
+            for block in text_blocks:
+                for line in block.get("lines", []):
+                    for span in line.get("spans", []):
+                        span_text = span["text"]  # Поточний текст
+                        bbox = span["bbox"]  # Позиція тексту
+                        font_size = span["size"]  # Розмір шрифту
+                        font_name = span["font"]  # Назва шрифту
+
+                        font_path = self.font_mapping.get(font_name)
+
+                        print(span_text)
+
+                        if re.match(r"TASL50C6003S", span_text):
+                            x0, y0, a, b = bbox
+                            local_nominal = nominal
+                            letter = "B"
+                            try:
+                                nominal_int = int(nominal)  # Перетворюємо nominal на ціле число
+                                if 100 <= nominal_int <= 999:  # Перевіряємо, чи nominal 3-значне
+                                    letter = "C"
+                                elif 1000 <= nominal_int <= 9999:  # Перевіряємо, чи nominal 4-значне
+                                    letter = "D"
+                                    local_nominal = nominal_int + 3  # Обчислюємо local_nominal
+                                    x0 -= 2
+                                else:
+                                    # Обробка ситуації, коли nominal не 3-значне і не 4-значне
+                                    print("nominal має бути 3- або 4-значним числом.")
+                            except ValueError:
+                                # Обробка помилки, якщо nominal не можна перетворити на ціле число
+                                print("Помилка: nominal має бути цілим числом.")
+                            a -= 1
+                            bbox = x0, y0, a, b
+                            new_page.add_redact_annot(bbox, fill=[255, 255, 255])
+                            new_page.apply_redactions()
+                            print(f"font name: {font_name}")
+                            new_page.insert_text((x0 + 1, y0 + font_size), f"{seria}{letter}{local_nominal}+0,8/1,2кВ",
+                                                 fontsize=font_size,
+                                                 color=(0, 0, 0),
+                                                 fontfile=font_path, fontname=font_name)
+
+                        if re.match(r"21$", span_text):
+                            x0, y0, a, b = bbox
+                            a -= 1
+                            bbox = x0, y0, a, b
+                            new_page.add_redact_annot(bbox, fill=[255, 255, 255])
+                            new_page.apply_redactions()
+
+                        if re.match(r"W$", span_text):
+                            x0, y0, a, b = bbox
+                            a -= 1
+                            bbox = x0, y0, a, b
+                            new_page.add_redact_annot(bbox, fill=[255, 255, 255])
+                            new_page.apply_redactions()
+
+                        if re.match(r"37$", span_text):
+                            x0, y0, a, b = bbox
+                            a -= 1
+                            bbox = x0, y0, a, b
+                            new_page.add_redact_annot(bbox, fill=[255, 255, 255])
+                            new_page.apply_redactions()
+                            x_minus = 11
+                            if year == 11 and week == 11:
+                                x_minus = 6
+                            new_page.insert_text((x0 - x_minus, y0 + font_size), f"{year}W{week}",
+                                                 fontsize=font_size,
+                                                 color=(0, 0, 0),
+                                                 fontfile=font_path, fontname=font_name)
+
+                        if re.match(r"T$", span_text):
+                            x0, y0, a, b = bbox
+                            a -= 1
+                            bbox = x0, y0, a, b
+                            new_page.add_redact_annot(bbox, fill=[255, 255, 255])
+                            new_page.apply_redactions()
+
+                        if re.match(r"AS$", span_text):
+                            x0, y0, a, b = bbox
+                            a -= 1
+                            bbox = x0, y0, a, b
+                            new_page.add_redact_annot(bbox, fill=[255, 255, 255])
+                            new_page.apply_redactions()
+
+                        if re.match(r"65$", span_text):
+                            x0, y0, a, b = bbox
+                            a -= 1
+                            bbox = x0, y0, a, b
+                            new_page.add_redact_annot(bbox, fill=[255, 255, 255])
+                            new_page.apply_redactions()
+                            new_page.insert_text((x0 - 9, y0 + font_size), seria,
+                                                 fontsize=font_size,
+                                                 color=(0, 0, 0),
+                                                 fontfile=font_path, fontname=font_name)
+
+                        if re.match(r"32x65mm 6$", span_text):
+                            x0, y0, a, b = bbox
+                            bbox = x0, y0, a, b
+                            new_page.add_redact_annot(bbox, fill=[255, 255, 255])
+                            new_page.apply_redactions()
+                            new_page.insert_text((x0, y0 + font_size), "32x65mm ",
+                                                 fontsize=font_size,
+                                                 color=(0, 0, 0),
+                                                 fontfile=font_path, fontname=font_name)
+
+                        if re.match(r"00/5AM.L$", span_text):
+                            x0, y0, a, b = bbox
+                            a += 20
+                            bbox = x0, y0, a, b
+                            new_page.add_redact_annot(bbox, fill=[255, 255, 255])
+                            new_page.apply_redactions()
+                            new_page.insert_text((x0 - 2, y0 + font_size), f"{nominal}/5AM.L LUNGO",
+                                                 fontsize=font_size,
+                                                 color=(0, 0, 0),
+                                                 fontfile=font_path, fontname=font_name)
 
     def closeEvent(self, event):
         if os.path.exists(self.temp_preview_path):
