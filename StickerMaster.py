@@ -190,6 +190,8 @@ class StickerGeneratorApp(QWidget):
         self.week_IME_box_label = QLabel("Тиждень:")
         self.week_IME_box_input = QLineEdit()
 
+        self.add_3_checkbox_box = QCheckBox("Додати 3 в кінці артикула")
+
         # Встановлюємо рамку для QLineEdit
         self.art_seria_IME_box_input.setStyleSheet("QLineEdit { border: 1px solid gray; }")
         self.seria_IME_box_input.setStyleSheet("QLineEdit { border: 1px solid gray; }")
@@ -312,6 +314,9 @@ class StickerGeneratorApp(QWidget):
         input_layout.addWidget(self.generate_IME_box_button, 7, 0, 1, 2)  # span columns
         input_layout.addWidget(self.preview_IME_box_button, 8, 0, 1, 2)  # span columns
 
+        input_layout.addWidget(self.add_3_checkbox_box, 9, 0, 1, 2)
+        self.add_3_checkbox_box.setVisible(False)
+
         self.boxes_tab.setLayout(input_layout)  # Встановлюємо layout для вкладки
 
     def select_standard_template(self):
@@ -353,6 +358,7 @@ class StickerGeneratorApp(QWidget):
             self.display_template_preview(self.template_path)
             # Додаємо визначення чи шаблон спецільний
             self.is_box_special_template = selected_template.endswith("_box_special_1")
+            self.add_3_checkbox_box.setVisible(self.is_box_special_template)
         else:
             self.template_path = ""
             self.template_pixmap = None
@@ -958,8 +964,9 @@ class StickerGeneratorApp(QWidget):
                             bbox = x0, y0, a, b
                             new_page.add_redact_annot(bbox, fill=[255, 255, 255])
                             new_page.apply_redactions()
-                            print(f"font name: {font_name}")
-                            new_page.insert_text((x0 + 1, y0 + font_size), f"{seria}{letter}{local_nominal}+0,8/1,2кВ",
+                            three = "3" if self.add_3_checkbox_box.isChecked() else ""
+                            new_page.insert_text((x0 + 1, y0 + font_size),
+                                                 f"{seria}{letter}{local_nominal}{three}S+0,8/1,2кВ",
                                                  fontsize=font_size,
                                                  color=(0, 0, 0),
                                                  fontfile=font_path, fontname=font_name)
