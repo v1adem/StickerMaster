@@ -15,7 +15,7 @@ class StickerGeneratorApp(QWidget):
             "MyriadPro-Regular": "fonts/MyriadPro-Regular.ttf",
             "MyriadPro-Bold": "fonts/MyriadPro-Bold.ttf",
             "Arial-BoldMT": "fonts/arial-mt-bold.ttf",
-            "YVUNJSå¼«Arial-BoldMT": "fonts/4068-font.ttf",#
+            "YVUNJSå¼«Arial-BoldMT": "fonts/4068-font.ttf",  #
             "ArialMT": "fonts/ArialMT-Light.ttf",
             "Bahnschrift": "fonts/bahnschrift.ttf",
             "STGONDå¼«Bahnschrift": "fonts/bahnschrift.ttf",
@@ -138,6 +138,11 @@ class StickerGeneratorApp(QWidget):
         self.va_cl_02_IME_standard_input = QLineEdit()
         self.va_cl_05s_IME_standard_input = QLineEdit()
 
+        self.generate_1_standard_sticker_button = QPushButton("Згенерувати 1 стікер")
+        self.generate_1_standard_sticker_button.clicked.connect(self.generate_one_IME_box_pdfs)
+        self.generate_1_standard_sticker_input = QLineEdit()
+        self.generate_1_standard_sticker_input.setPlaceholderText("Всі 4 цифри номеру")
+
         # Встановлюємо рамку для QLineEdit
         self.art_seria_IME_standard_input.setStyleSheet("QLineEdit { border: 1px solid gray; }")
         self.prefix_IME_standard_input.setStyleSheet("QLineEdit { border: 1px solid gray; }")
@@ -149,6 +154,7 @@ class StickerGeneratorApp(QWidget):
         self.va_cl_02s_IME_standard_input.setStyleSheet("QLineEdit { border: 1px solid gray; }")
         self.va_cl_02_IME_standard_input.setStyleSheet("QLineEdit { border: 1px solid gray; }")
         self.va_cl_05s_IME_standard_input.setStyleSheet("QLineEdit { border: 1px solid gray; }")
+        self.generate_1_standard_sticker_input.setStyleSheet("QLineEdit { border: 1px solid gray; }")
 
         self.generate_IME_standard_button = QPushButton("Згенерувати PDF")
         self.generate_IME_standard_button.clicked.connect(self.generate_IME_standard_pdfs)
@@ -181,6 +187,9 @@ class StickerGeneratorApp(QWidget):
 
         self.week_IME_box_label = QLabel("Тиждень:")
         self.week_IME_box_input = QLineEdit()
+
+        self.generate_1_box_sticker_button = QPushButton("Згенерувати 1 стікер")
+        self.generate_1_box_sticker_input = QLineEdit()
 
         # Встановлюємо рамку для QLineEdit
         self.art_seria_IME_box_input.setStyleSheet("QLineEdit { border: 1px solid gray; }")
@@ -253,6 +262,9 @@ class StickerGeneratorApp(QWidget):
         input_layout.addWidget(self.va_cl_02_IME_standard_input, 12, 1)
         input_layout.addWidget(self.va_cl_05s_IME_standard_label, 13, 0)
         input_layout.addWidget(self.va_cl_05s_IME_standard_input, 13, 1)
+
+        input_layout.addWidget(self.generate_1_standard_sticker_input, 14, 0)
+        input_layout.addWidget(self.generate_1_standard_sticker_button, 14, 1)
 
         self.va_cl_02s_IME_standard_label.setVisible(False)
         self.va_cl_02s_IME_standard_input.setVisible(False)
@@ -482,6 +494,41 @@ class StickerGeneratorApp(QWidget):
                 serial_number = f"{prefix}{i:04}"
                 self.modify_IME_standart_pdf(self.template_path, doc_output, serial_number, date_code, nominal, va,
                                              short_prefix)
+
+        # Зберегти фінальний PDF файл з усіма сторінками
+        doc_output.save(output_pdf)
+        doc_output.close()
+
+    def generate_one_IME_box_pdfs(self):
+        if not self.template_path:
+            return
+
+        prefix = self.prefix_IME_standard_input.text()
+        short_prefix = self.short_prefix_IME_standard_input.text()
+        year = self.year_IME_standard_input.text()
+        week = self.week_IME_standard_input.text()
+        date_code = f"{year}W{week}"
+        nominal = self.nominal_IME_standard_input.text()
+        va = self.va_IME_standard_input.text()
+        i = self.generate_1_standard_sticker_input.text()
+
+        folder = QFileDialog.getExistingDirectory(self, "Виберіть папку для збереження")
+        if not folder:
+            return
+
+        # Формуємо назву файлу
+        output_pdf = os.path.join(folder, f"{short_prefix} {nominal}A {date_code} #{i}-1шт.pdf")
+        doc_output = fitz.open()  # Новий PDF документ для збереження всіх сторінок
+        serial_number = f"{prefix}{i:04}"
+        if "special_1" in self.template_path:
+            va_cl_02s = self.va_cl_02s_IME_standard_input.text()
+            va_cl_02 = self.va_cl_02_IME_standard_input.text()
+            va_cl_05s = self.va_cl_05s_IME_standard_input.text()
+            self.modify_IME_standart_pdf(self.template_path, doc_output, serial_number, date_code, nominal,
+                                         va_cl_02s, short_prefix, va_cl_02, va_cl_05s)
+        else:
+            self.modify_IME_standart_pdf(self.template_path, doc_output, serial_number, date_code, nominal, va,
+                                         short_prefix)
 
         # Зберегти фінальний PDF файл з усіма сторінками
         doc_output.save(output_pdf)
