@@ -3,7 +3,7 @@ import os
 import fitz  # PyMuPDF
 import re
 from PySide6.QtWidgets import QApplication, QWidget, QLabel, QLineEdit, QPushButton, QFileDialog, \
-    QMessageBox, QGroupBox, QGridLayout, QTabWidget, QComboBox
+    QMessageBox, QGroupBox, QGridLayout, QTabWidget, QComboBox, QCheckBox
 from PySide6.QtGui import QPixmap, Qt
 from PIL import ImageQt, Image
 
@@ -138,6 +138,8 @@ class StickerGeneratorApp(QWidget):
         self.va_cl_02_IME_standard_input = QLineEdit()
         self.va_cl_05s_IME_standard_input = QLineEdit()
 
+        self.add_3_checkbox = QCheckBox("Додати 3 в кінці артикула")
+
         self.generate_1_standard_sticker_button = QPushButton("Згенерувати 1 стікер")
         self.generate_1_standard_sticker_button.clicked.connect(self.generate_one_IME_standard_pdfs)
         self.generate_1_standard_sticker_input = QLineEdit()
@@ -260,8 +262,10 @@ class StickerGeneratorApp(QWidget):
         input_layout.addWidget(self.va_cl_05s_IME_standard_label, 13, 0)
         input_layout.addWidget(self.va_cl_05s_IME_standard_input, 13, 1)
 
-        input_layout.addWidget(self.generate_1_standard_sticker_input, 14, 0)
-        input_layout.addWidget(self.generate_1_standard_sticker_button, 14, 1)
+        input_layout.addWidget(self.add_3_checkbox, 14, 0, 1, 2)
+
+        input_layout.addWidget(self.generate_1_standard_sticker_input, 15, 0)
+        input_layout.addWidget(self.generate_1_standard_sticker_button, 15, 1)
 
         self.va_cl_02s_IME_standard_label.setVisible(False)
         self.va_cl_02s_IME_standard_input.setVisible(False)
@@ -269,6 +273,7 @@ class StickerGeneratorApp(QWidget):
         self.va_cl_02_IME_standard_input.setVisible(False)
         self.va_cl_05s_IME_standard_label.setVisible(False)
         self.va_cl_05s_IME_standard_input.setVisible(False)
+        self.add_3_checkbox.setVisible(False)
 
         self.standard_tab.setLayout(input_layout)  # Встановлюємо layout для вкладки
 
@@ -325,6 +330,7 @@ class StickerGeneratorApp(QWidget):
             self.va_cl_02_IME_standard_input.setVisible(is_special_template)
             self.va_cl_05s_IME_standard_label.setVisible(is_special_template)
             self.va_cl_05s_IME_standard_input.setVisible(is_special_template)
+            self.add_3_checkbox.setVisible(is_special_template)
         else:
             self.template_path = ""
             self.template_pixmap = None
@@ -724,7 +730,9 @@ class StickerGeneratorApp(QWidget):
                                 except ValueError:
                                     print("Помилка: nominal має бути цілим числом.")
 
-                                new_text = f"{self.art_seria_IME_standard_input.text()}{letter}{local_nominal}S+1,2/6KV      {short_prefix}"
+                                three = "3" if self.add_3_checkbox.isChecked() else ""
+
+                                new_text = f"{self.art_seria_IME_standard_input.text()}{letter}{local_nominal}{three}S+1,2/6KV      {short_prefix}"
                                 x0, y0, a, b = bbox
                                 new_page.add_redact_annot(bbox, fill=[255, 255, 255])
                                 new_page.apply_redactions()
