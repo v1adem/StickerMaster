@@ -139,7 +139,7 @@ class StickerGeneratorApp(QWidget):
         self.va_cl_05s_IME_standard_input = QLineEdit()
 
         self.generate_1_standard_sticker_button = QPushButton("Згенерувати 1 стікер")
-        self.generate_1_standard_sticker_button.clicked.connect(self.generate_one_IME_box_pdfs)
+        self.generate_1_standard_sticker_button.clicked.connect(self.generate_one_IME_standard_pdfs)
         self.generate_1_standard_sticker_input = QLineEdit()
         self.generate_1_standard_sticker_input.setPlaceholderText("Всі 4 цифри номеру")
 
@@ -187,9 +187,6 @@ class StickerGeneratorApp(QWidget):
 
         self.week_IME_box_label = QLabel("Тиждень:")
         self.week_IME_box_input = QLineEdit()
-
-        self.generate_1_box_sticker_button = QPushButton("Згенерувати 1 стікер")
-        self.generate_1_box_sticker_input = QLineEdit()
 
         # Встановлюємо рамку для QLineEdit
         self.art_seria_IME_box_input.setStyleSheet("QLineEdit { border: 1px solid gray; }")
@@ -499,7 +496,7 @@ class StickerGeneratorApp(QWidget):
         doc_output.save(output_pdf)
         doc_output.close()
 
-    def generate_one_IME_box_pdfs(self):
+    def generate_one_IME_standard_pdfs(self):
         if not self.template_path:
             return
 
